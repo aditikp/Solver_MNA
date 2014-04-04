@@ -7,25 +7,31 @@
 #include <string>
 #include "conio.h"
 #include <regex>
+#include <complex>
+
+#define M_PI       3.14159265358979323846
 
 using namespace std;
 
 struct node {
 	char type;			//stores element type
 	int Na, Nb;			// Nodes between which element is connected
-	float value;			// Value of element
+	complex <float> value;			// Value of element
 };
 
 
 int main()
 {
 	int i=0;
-	int flag=0;
-	//	int val;
-//	node *vertex = new node();
+	complex <float> factor(1,0);
 	node vertex[50];
 	ifstream in("circuit.txt");
 	string line;
+
+	complex <float> s(0,2*M_PI);
+	complex <float> one(1,0);
+	cout << "S=" << s << endl;
+	
 
 	if(!in) {
 		cerr<<"circuit.txt could not be opened for reading\n"<<endl;
@@ -39,18 +45,18 @@ int main()
 		//tr1::regex rx("([rlgc]d)s+(d)s+(d)s+(d)");
 		tr1::regex rx("([rlgc][0-9]+) +([0-9]+) +([0-9])+ +([0-9]+.?[0-9]*)");
 		if(regex_search(line.c_str(), res, rx)) {
-			cout << "Match" <<endl;
+		//	cout << "Match" <<endl;
 		}
 		cout << "Values: " << res[1] <<" "<< res[2] << " " << res[3] << " " << res[4] << endl; 
 
 		vertex[i].type = line[0];
-		cout << "Type of element: " << vertex[i].type << endl;
+		//cout << "Type of element: " << vertex[i].type << endl;
 		vertex[i].Na = stoi(res[2]);
-		cout << "Node A: " << vertex[i].Na << endl;
+		//cout << "Node A: " << vertex[i].Na << endl;
 		vertex[i].Nb = stoi(res[3]);
-		cout<< "Node B: " << vertex[i].Nb << endl;
+		//cout<< "Node B: " << vertex[i].Nb << endl;
 		vertex[i].value = stof(res[4]);
-		cout << "Value: "<< vertex[i].value << endl;
+		//cout << "Value: "<< vertex[i].value << endl;
 		i++;
 	}
 
@@ -64,31 +70,54 @@ int main()
 	//size++;
 	cout <<"No. of nodes=" << size <<endl;
 
-	int** A = new int*[size];
+	complex <float>** A = new complex <float>*[size];
 	for(int p = 0; p < size; p++)
-		A[p] = new int[size];
+		A[p] = new complex <float>[size];
 	for (int p=0; p<size;p++)
 		for (int q=0; q<size; q++)
 			A[p][q]=0;
 
-	/*for (int p=0;p<length;p++){
-		if (vertex[p].type='g') {
-			if (vertex[p].Nb==0) {
-				A[vertex[p].Na-1][vertex[p].Na-1]=A[vertex[p].Na-1][vertex[p].Na-1]+vertex[p].value;
-				cout << "Vertex value:" << A[vertex[p].Na-1][vertex[p].Na-1] << endl;
-			}
-			else if (vertex[p].Na=0)
-				A[vertex[p].Nb][vertex[p].Nb]=A[vertex[p].Nb][vertex[p].Nb]+vertex[p].value;
-			else {
-				A[vertex[p].Na][vertex[p].Na]=A[vertex[p].Na][vertex[p].Na]+vertex[p].value;
-				A[vertex[p].Na][vertex[p].Nb]=A[vertex[p].Na][vertex[p].Nb]-vertex[p].value;
-				A[vertex[p].Nb][vertex[p].Na]=A[vertex[p].Nb][vertex[p].Na]-vertex[p].value;
-				A[vertex[p].Nb][vertex[p].Nb]=A[vertex[p].Nb][vertex[p].Nb]+vertex[p].value;
-			}
-	}
-	}*/
 
 	for (int p=0; p<size;p++){
+		for (int q=0; q<size; q++)
+			cout << A[p][q] << ' ';
+		cout << endl;
+	}
+
+
+	for (int p=0;p<length;p++){
+		if (vertex[p].type=='g' || vertex[p].type=='c') {
+			if (vertex[p].type=='g') {
+				cout << "It is a conductance" << endl;
+				factor=one;
+			} else {
+				cout << "It is a capacitance" << endl;
+				factor=s;
+			}
+				
+				cout << "Factor= "<< factor << endl;
+				vertex[p].value = vertex[p].value*factor;
+				cout<< "AFter using s, value = " << vertex[p].value << endl;
+
+			if (vertex[p].Nb==0) {
+				cout << "Nb is 0" << endl;
+				//cout << "Index" << vertex[p].Na << endl; 
+				A[(vertex[p].Na)-1][(vertex[p].Na)-1]=A[(vertex[p].Na)-1][(vertex[p].Na)-1]+vertex[p].value;
+				cout << "Vertex value:" << A[vertex[p].Na-1][vertex[p].Na-1] << endl;
+			}
+			else if (vertex[p].Na==0)
+				A[vertex[p].Nb-1][vertex[p].Nb-1]=A[vertex[p].Nb-1][vertex[p].Nb-1]+vertex[p].value;
+			else {
+				A[vertex[p].Na-1][vertex[p].Na-1]=A[vertex[p].Na-1][vertex[p].Na-1]+vertex[p].value;
+				A[vertex[p].Na-1][vertex[p].Nb-1]=A[vertex[p].Na-1][vertex[p].Nb-1]-vertex[p].value;
+				A[vertex[p].Nb-1][vertex[p].Na-1]=A[vertex[p].Nb-1][vertex[p].Na-1]-vertex[p].value;
+				A[vertex[p].Nb-1][vertex[p].Nb-1]=A[vertex[p].Nb-1][vertex[p].Nb-1]+vertex[p].value;
+			
+	}
+	} 
+
+
+	} for(int p=0; p<size;p++){
 		for (int q=0; q<size; q++)
 			cout << A[p][q] << ' ';
 		cout << endl;
